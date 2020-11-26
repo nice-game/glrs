@@ -9,7 +9,10 @@ pub mod shader;
 pub mod texture;
 pub mod vertex;
 
-use crate::texture::TextureAbstract;
+use crate::{
+	commands::{DrawArraysIndirectCommand, DrawElementsIndirectCommand},
+	texture::TextureAbstract,
+};
 pub use gl;
 pub use memoffset;
 
@@ -69,7 +72,15 @@ impl Ctx {
 		};
 	}
 
-	pub fn multi_draw_elements_indirect(&self, cmds: impl CommandBufferAbstract) {
+	pub fn multi_draw_arrays_indirect(&self, cmds: impl CommandBufferAbstract<DrawArraysIndirectCommand>) {
+		unsafe {
+			self.gl.BindVertexArray(cmds.vao().handle());
+			self.gl.BindBuffer(gl::DRAW_INDIRECT_BUFFER, cmds.handle());
+			self.gl.MultiDrawArraysIndirect(gl::TRIANGLES, cmds.indirect(), cmds.len() as _, 0)
+		};
+	}
+
+	pub fn multi_draw_elements_indirect(&self, cmds: impl CommandBufferAbstract<DrawElementsIndirectCommand>) {
 		unsafe {
 			self.gl.BindVertexArray(cmds.vao().handle());
 			self.gl.BindBuffer(gl::DRAW_INDIRECT_BUFFER, cmds.handle());

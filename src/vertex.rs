@@ -140,6 +140,10 @@ impl VertexArray {
 	pub fn handle(&self) -> GLuint {
 		self.handle
 	}
+
+	pub fn ctx(&self) -> &Rc<Ctx> {
+		&self.ctx
+	}
 }
 impl Drop for VertexArray {
 	fn drop(&mut self) {
