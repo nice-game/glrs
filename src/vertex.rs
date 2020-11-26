@@ -98,7 +98,7 @@ pub struct VertexAttributeFormat {
 pub struct VertexArray {
 	ctx: Rc<Ctx>,
 	handle: GLuint,
-	formats: Vec<Vec<VertexAttributeFormat>>,
+	formats: RefCell<Vec<Vec<VertexAttributeFormat>>>,
 	next_attrib: Cell<GLuint>,
 	element_buffer: RefCell<Option<Rc<DynamicBuffer<[u8]>>>>,
 	vertex_buffers: RefCell<Vec<Option<Rc<DynamicBuffer<[u8]>>>>>,
@@ -113,7 +113,7 @@ impl VertexArray {
 			formats: vec![],
 			next_attrib: 0.into(),
 			element_buffer: None.into(),
-			vertex_buffers: vec![],
+			vertex_buffers: vec![].into(),
 		}
 	}
 
@@ -122,15 +122,16 @@ impl VertexArray {
 		let gl = &self.ctx.gl;
 		for &VertexAttributeFormat { offset, size, typ } in &format {
 			let next_attrib = self.next_attrib.get();
+			let formats_len = self.formats.borrow().len() as _;
 			unsafe {
 				gl.EnableVertexArrayAttrib(self.handle, next_attrib);
 				gl.VertexArrayAttribFormat(self.handle, next_attrib, size, typ, gl::FALSE, offset);
-				gl.VertexArrayAttribBinding(self.handle, next_attrib, self.formats.len() as _);
-				gl.VertexArrayBindingDivisor(self.handle, self.formats.len() as _, divisor);
+				gl.VertexArrayAttribBinding(self.handle, next_attrib, formats_len);
+				gl.VertexArrayBindingDivisor(self.handle, formats_len, divisor);
 			}
 			self.next_attrib.set(next_attrib + 1);
 		}
-		self.formats.push(format);
+		self.formats.borrow_mut().push(format);
 
 		self.vertex_buffers.borrow_mut().push(None);
 	}
@@ -142,7 +143,7 @@ impl VertexArray {
 	}
 
 	pub fn vertex_buffer<V: Vertex>(&self, binding: usize, vertex_buffer: &Allocator<V>) {
-		assert_eq!(V::format(), self.formats[binding]);
+		assert_eq!(V::format(), self.formats.borrow()[binding]);
 
 		let vertex_buffer = vertex_buffer.buffer();
 		let stride = size_of::<V>() as _;
