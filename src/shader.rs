@@ -58,16 +58,22 @@ pub struct ShaderBuilder {
 	fragment: GLuint,
 }
 impl ShaderBuilder {
-	pub fn vertex_file(mut self, path: impl AsRef<Path>) -> Self {
-		let src = load_src(path);
-		self.vertex = create_shader(&self.ctx, gl::VERTEX_SHADER, &src);
-		self
+	pub fn vertex(self, code: &str) -> Self {
+		unsafe { self.shader(code, gl::VERTEX_SHADER) }
 	}
 
-	pub fn fragment_file(mut self, path: impl AsRef<Path>) -> Self {
-		let src = load_src(path);
-		self.fragment = create_shader(&self.ctx, gl::FRAGMENT_SHADER, &src);
-		self
+	pub fn vertex_file(self, path: impl AsRef<Path>) -> Self {
+		let code = load_code(path);
+		unsafe { self.shader(&code, gl::VERTEX_SHADER) }
+	}
+
+	pub fn fragment(self, code: &str) -> Self {
+		unsafe { self.shader(code, gl::FRAGMENT_SHADER) }
+	}
+
+	pub fn fragment_file(self, path: impl AsRef<Path>) -> Self {
+		let code = load_code(path);
+		unsafe { self.shader(&code, gl::FRAGMENT_SHADER) }
 	}
 
 	pub fn build(self) -> ShaderProgram {
@@ -120,6 +126,12 @@ impl ShaderBuilder {
 	fn new(ctx: &Rc<Ctx>) -> Self {
 		Self { ctx: ctx.clone(), vertex: 0, fragment: 0 }
 	}
+
+	unsafe fn shader(mut self, code: &str, typ: GLenum) -> Self {
+		let code = CString::new(code).unwrap();
+		self.fragment = create_shader(&self.ctx, typ, &code);
+		self
+	}
 }
 
 unsafe fn get_active_resources(gl: &Gl, handle: GLuint, interface: GLenum) -> GLint {
@@ -169,18 +181,18 @@ struct UniformBlock {
 	props: Vec<Uniform>,
 }
 
-fn load_src(path: impl AsRef<Path>) -> CString {
+fn load_code(path: impl AsRef<Path>) -> String {
 	let mut file = File::open(path).unwrap();
-	let mut src = String::new();
-	file.read_to_string(&mut src).unwrap();
-	CString::new(src).unwrap()
+	let mut code = String::new();
+	file.read_to_string(&mut code).unwrap();
+	code
 }
 
-fn create_shader(ctx: &Ctx, typ: GLenum, src: &CStr) -> GLuint {
+fn create_shader(ctx: &Ctx, typ: GLenum, code: &CStr) -> GLuint {
 	let gl = &ctx.gl;
 	unsafe {
 		let handle = gl.CreateShader(typ);
-		gl.ShaderSource(handle, 1, [src.as_ptr()].as_ptr(), ptr::null());
+		gl.ShaderSource(handle, 1, [code.as_ptr()].as_ptr(), ptr::null());
 		gl.CompileShader(handle);
 		check_shader(gl, handle);
 		handle
