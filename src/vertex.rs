@@ -110,7 +110,7 @@ impl VertexArray {
 		Self {
 			ctx: ctx.clone(),
 			handle,
-			formats: vec![],
+			formats: vec![].into(),
 			next_attrib: 0.into(),
 			element_buffer: None.into(),
 			vertex_buffers: vec![].into(),
