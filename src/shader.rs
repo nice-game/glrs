@@ -59,21 +59,25 @@ pub struct ShaderBuilder {
 }
 impl ShaderBuilder {
 	pub fn vertex(self, code: &str) -> Self {
-		unsafe { self.shader(code, gl::VERTEX_SHADER) }
+		self.vertex = unsafe { self.shader(code, gl::VERTEX_SHADER) };
+		self
 	}
 
 	pub fn vertex_file(self, path: impl AsRef<Path>) -> Self {
 		let code = load_code(path);
-		unsafe { self.shader(&code, gl::VERTEX_SHADER) }
+		self.vertex = unsafe { self.shader(&code, gl::VERTEX_SHADER) };
+		self
 	}
 
 	pub fn fragment(self, code: &str) -> Self {
-		unsafe { self.shader(code, gl::FRAGMENT_SHADER) }
+		self.fragment = unsafe { self.shader(code, gl::FRAGMENT_SHADER) };
+		self
 	}
 
 	pub fn fragment_file(self, path: impl AsRef<Path>) -> Self {
 		let code = load_code(path);
-		unsafe { self.shader(&code, gl::FRAGMENT_SHADER) }
+		self.fragment = unsafe { self.shader(&code, gl::FRAGMENT_SHADER) };
+		self
 	}
 
 	pub fn build(self) -> ShaderProgram {
@@ -127,10 +131,9 @@ impl ShaderBuilder {
 		Self { ctx: ctx.clone(), vertex: 0, fragment: 0 }
 	}
 
-	unsafe fn shader(mut self, code: &str, typ: GLenum) -> Self {
+	unsafe fn shader(&self, code: &str, typ: GLenum) -> GLuint {
 		let code = CString::new(code).unwrap();
-		self.fragment = create_shader(&self.ctx, typ, &code);
-		self
+		create_shader(&self.ctx, typ, &code)
 	}
 }
 
