@@ -58,23 +58,23 @@ pub struct ShaderBuilder {
 	fragment: GLuint,
 }
 impl ShaderBuilder {
-	pub fn vertex(self, code: &str) -> Self {
+	pub fn vertex(mut self, code: &str) -> Self {
 		self.vertex = unsafe { self.shader(code, gl::VERTEX_SHADER) };
 		self
 	}
 
-	pub fn vertex_file(self, path: impl AsRef<Path>) -> Self {
+	pub fn vertex_file(mut self, path: impl AsRef<Path>) -> Self {
 		let code = load_code(path);
 		self.vertex = unsafe { self.shader(&code, gl::VERTEX_SHADER) };
 		self
 	}
 
-	pub fn fragment(self, code: &str) -> Self {
+	pub fn fragment(mut self, code: &str) -> Self {
 		self.fragment = unsafe { self.shader(code, gl::FRAGMENT_SHADER) };
 		self
 	}
 
-	pub fn fragment_file(self, path: impl AsRef<Path>) -> Self {
+	pub fn fragment_file(mut self, path: impl AsRef<Path>) -> Self {
 		let code = load_code(path);
 		self.fragment = unsafe { self.shader(&code, gl::FRAGMENT_SHADER) };
 		self
