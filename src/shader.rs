@@ -1,4 +1,4 @@
-use crate::{BufferSlice, Ctx};
+use crate::{vertex::VertexAttribute, BufferSlice, Ctx};
 use gl::{
 	types::{GLenum, GLint, GLsizei, GLuint},
 	Gl,
@@ -28,6 +28,26 @@ impl ShaderProgram {
 
 	pub fn handle(&self) -> GLuint {
 		self.handle
+	}
+
+	pub fn set_uniform<T: VertexAttribute>(&self, name: &str, val: &T) {
+		let uniform = self.uniforms.get(name).unwrap();
+		assert_eq!(uniform.typ, T::typ());
+		assert_eq!(uniform.size, T::size());
+		unsafe {
+			match T::typ() {
+				gl::FLOAT => {
+					self.ctx.gl.ProgramUniform1fv(self.handle, uniform.location, T::size(), val as *const _ as _)
+				},
+				gl::INT => {
+					self.ctx.gl.ProgramUniform1iv(self.handle, uniform.location, T::size(), val as *const _ as _)
+				},
+				gl::UNSIGNED_INT => {
+					self.ctx.gl.ProgramUniform1uiv(self.handle, uniform.location, T::size(), val as *const _ as _)
+				},
+				_ => unreachable!(),
+			}
+		}
 	}
 
 	pub fn set_uniform_i32(&self, name: &str, val: i32) {
