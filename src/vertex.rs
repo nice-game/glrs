@@ -56,6 +56,7 @@ pub trait VertexAttribute {
 	fn typ() -> GLenum;
 }
 implement_attribute!(u8, 1, gl::UNSIGNED_BYTE);
+implement_attribute!(u32, 1, gl::UNSIGNED_INT);
 implement_attribute!(f32, 1, gl::FLOAT);
 impl<N: Scalar + VertexAttribute, D: Dim + DimName> VertexAttribute for VectorN<N, D>
 where
