@@ -10,6 +10,10 @@ pub trait FramebufferAbstract {
 		let color = [red, green, blue, alpha];
 		unsafe { self.ctx().gl.ClearNamedFramebufferfv(self.handle(), gl::COLOR, 0, color.as_ptr()) };
 	}
+
+	fn clear_depth(&self, value: f32) {
+		unsafe { self.ctx().gl.ClearNamedFramebufferfv(self.handle(), gl::DEPTH, 0, &value) };
+	}
 }
 
 pub struct DefaultFramebuffer {
