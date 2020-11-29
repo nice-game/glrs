@@ -72,6 +72,10 @@ impl Ctx {
 		};
 	}
 
+	pub fn enable_depth_test(&self) {
+		unsafe { self.gl.Enable(gl::DEPTH_TEST) };
+	}
+
 	pub fn multi_draw_arrays_indirect(&self, cmds: impl CommandBufferAbstract<DrawArraysIndirectCommand>) {
 		unsafe {
 			self.gl.BindVertexArray(cmds.vao().handle());
